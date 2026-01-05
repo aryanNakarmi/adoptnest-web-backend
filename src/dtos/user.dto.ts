@@ -1,6 +1,6 @@
 import z from "zod";
 import { UserSchema } from "../types/user.type";
-// re-use UserSchema from types
+
 export const CreateUserDTO = UserSchema.pick(
     {
     
