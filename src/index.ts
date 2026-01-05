@@ -14,9 +14,8 @@ const app: Application = express();
 
 app.use(bodyParser.json());
 
-import bookRoutes from "./routes/book.route";
+
 import authRoutes from "./routes/auth.route";
-import authUserRouter from "./routes/admin/user.route";
 
 
 app.use("/api/books",bookRoutes);
