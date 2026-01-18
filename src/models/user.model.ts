@@ -4,9 +4,6 @@ const UserSchema: Schema = new Schema<UserType>(
     {
         email: { type: String, required: true, unique: true },
         password: { type: String, required: true },
-        username: { type: String,  unique: true
-            , sparse: true, default: null
-        },
         fullName: { type: String },
          phoneNumber: {
             type: String,

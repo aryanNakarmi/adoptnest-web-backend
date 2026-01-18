@@ -14,13 +14,7 @@ export class UserService {
         if(emailCheck){
             throw new HttpError(403, "Email already in use");
         }
-        if(data.username){
-            const usernameCheck = await userRepository.getUserByUsername(data.username);
-            if(usernameCheck){
-
-                throw new HttpError(403, "Username already in use");
-            }
-        }
+    
         // hash password
         const hashedPassword = await bcryptjs.hash(data.password, 10); // 10 - complexity
         data.password = hashedPassword;
@@ -45,7 +39,6 @@ export class UserService {
         const payload = { // user identifier
             id: user._id,
             email: user.email,
-            username: user.username,
             fullName: user.fullName,
             role: user.role
         }
@@ -109,13 +102,7 @@ export class UserService {
                     throw new HttpError(403, "Email already in use");
                 }
             }
-            // Check if username is being updated and if it's already in use
-            if (data.username && data.username !== user.username) {
-                const usernameCheck = await userRepository.getUserByUsername(data.username);
-                if (usernameCheck) {
-                    throw new HttpError(403, "Username already in use");
-                }
-            }
+    
             // Hash password if it's being updated
             if (data.password) {
                 data.password = await bcryptjs.hash(data.password, 10);

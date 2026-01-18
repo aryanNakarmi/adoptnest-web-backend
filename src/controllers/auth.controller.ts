@@ -24,7 +24,6 @@ export class AuthController {
                     fullName: newUser.fullName,
                     email: newUser.email,
                     phoneNumber: newUser.phoneNumber || null,
-                    username: newUser.username || null,
                     profilePicture: newUser.profilePicture || null,
                     role: newUser.role,
                 }
@@ -53,7 +52,6 @@ export class AuthController {
                     fullName: user.fullName,
                     email: user.email,
                     phoneNumber: user.phoneNumber,
-                    username: user.username,
                     profilePicture: user.profilePicture,
                     role: user.role,
                 }, token }
@@ -77,7 +75,6 @@ export class AuthController {
                     fullName: user.fullName,
                     email: user.email,
                     phoneNumber: user.phoneNumber || null,
-                    username: user.username || null,
                     profilePicture: user.profilePicture || null,
                     role: user.role,
                     createdAt: user.createdAt,
@@ -117,7 +114,6 @@ export class AuthController {
                     fullName: user.fullName,
                     email: user.email,
                     phoneNumber: user.phoneNumber || null,
-                    username: user.username || null,
                     profilePicture: user.profilePicture || null,
                     role: user.role,
                     createdAt: user.createdAt,

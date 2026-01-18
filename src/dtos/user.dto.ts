@@ -6,7 +6,6 @@ export const CreateUserDTO = UserSchema.pick(
     
         fullName: true,
         email: true,
-        username: true,
         password: true,
         phoneNumber: true,
     }
