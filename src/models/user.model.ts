@@ -4,8 +4,18 @@ const UserSchema: Schema = new Schema<UserType>(
     {
         email: { type: String, required: true, unique: true },
         password: { type: String, required: true },
-        username: { type: String, required: true, unique: true },
+        username: { type: String,  unique: true
+            , sparse: true, default: null
+        },
         fullName: { type: String },
+         phoneNumber: {
+            type: String,
+            default: null
+        },
+        profilePicture: {
+            type: String,
+            default: null
+        },
         role: {
             type: String,
             enum: ['user', 'admin'],

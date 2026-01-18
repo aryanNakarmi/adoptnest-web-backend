@@ -3,8 +3,7 @@ import bodyParser from 'body-parser';
 import { connectDatabase } from './database/mongodb';
 import { PORT } from './config';
 import dotenv from 'dotenv';
-import authRoutes from "./routes/auth.route";
-
+import authRoutes from './routes/auth.route';
 
 dotenv.config();
 //can use .env variable below this
@@ -15,7 +14,7 @@ const app: Application = express();
 
 app.use(bodyParser.json());
 
-app.use("/api/auth",authRoutes);
+app.use("/api/v1/auth",authRoutes);
 
 app.get('/', (req:Request, res:Response) =>{
       return res.status(200).json({ success: "true", message: "Welcome to the API" });

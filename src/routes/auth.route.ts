@@ -6,6 +6,12 @@ const router = Router();
 
 router.post("/register", authController.register)
 router.post("/login", authController.login)
-// add remaning routes like login, logout, etc.
+
+//user routes
+
+router.get("/",authController.getAllUsers)
+router.get("/:id",authController.getUserById)
+router.delete("/:id",authController.deleteUser)
+
 
 export default router;

@@ -7,19 +7,21 @@ export const CreateUserDTO = UserSchema.pick(
         fullName: true,
         email: true,
         username: true,
-        password: true
-    }
-).extend( // add new attribute to zod
-    {
-        confirmPassword: z.string().min(6)
-    }
-).refine( // extra validation for confirmPassword
-    (data) => data.password === data.confirmPassword,
-    {
-        message: "Passwords do not match",
-        path: ["confirmPassword"]
+        password: true,
+        phoneNumber: true,
     }
 )
+// .extend( // add new attribute to zod
+//     {
+//         confirmPassword: z.string().min(6)
+//     }
+// ).refine( // extra validation for confirmPassword
+//     (data) => data.password === data.confirmPassword,
+//     {
+//         message: "Passwords do not match",
+//         path: ["confirmPassword"]
+//     }
+// )
 export type CreateUserDTO = z.infer<typeof CreateUserDTO>;
 
 export const LoginUserDTO = z.object({

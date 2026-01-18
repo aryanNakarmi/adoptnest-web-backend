@@ -14,9 +14,12 @@ export class UserService {
         if(emailCheck){
             throw new HttpError(403, "Email already in use");
         }
-        const usernameCheck = await userRepository.getUserByUsername(data.username);
-        if(usernameCheck){
-            throw new HttpError(403, "Username already in use");
+        if(data.username){
+            const usernameCheck = await userRepository.getUserByUsername(data.username);
+            if(usernameCheck){
+
+                throw new HttpError(403, "Username already in use");
+            }
         }
         // hash password
         const hashedPassword = await bcryptjs.hash(data.password, 10); // 10 - complexity
@@ -27,7 +30,7 @@ export class UserService {
         return newUser;
     }
 
-    async loginUser(data: LoginUserDTO){
+    async   loginUser(data: LoginUserDTO){
         const user =  await userRepository.getUserByEmail(data.email);
         if(!user){
             throw new HttpError(404, "User not found");
@@ -48,5 +51,79 @@ export class UserService {
         }
         const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '30d' }); // 30 days
         return { token, user }
+    }
+
+    async getAllUsers() {
+        try {
+            const users = await userRepository.getAllUsers();
+            return users;
+        } catch (error: Error | any) {
+            throw new HttpError(500, error.message || "Failed to fetch users");
+        }
+    }
+
+    async getUserById(id: string) {
+        try {
+            if (!id) {
+                throw new HttpError(400, "User ID is required");
+            }
+            const user = await userRepository.getUserById(id);
+            if (!user) {
+                throw new HttpError(404, "User not found");
+            }
+            return user;
+        } catch (error: Error | any) {
+            throw new HttpError(error.statusCode ?? 500, error.message || "Failed to fetch user");
+        }
+    }
+
+    async deleteUser(id: string) {
+        try {
+            if (!id) {
+                throw new HttpError(400, "User ID is required");
+            }
+            const user = await userRepository.getUserById(id);
+            if (!user) {
+                throw new HttpError(404, "User not found");
+            }
+            const deletedUser = await userRepository.deleteUser(id);
+            return deletedUser;
+        } catch (error: Error | any) {
+            throw new HttpError(error.statusCode ?? 500, error.message || "Failed to delete user");
+        }
+    }
+
+    async updateUser(id: string, data: Partial<CreateUserDTO>) {
+        try {
+            if (!id) {
+                throw new HttpError(400, "User ID is required");
+            }
+            const user = await userRepository.getUserById(id);
+            if (!user) {
+                throw new HttpError(404, "User not found");
+            }
+            // Check if email is being updated and if it's already in use
+            if (data.email && data.email !== user.email) {
+                const emailCheck = await userRepository.getUserByEmail(data.email);
+                if (emailCheck) {
+                    throw new HttpError(403, "Email already in use");
+                }
+            }
+            // Check if username is being updated and if it's already in use
+            if (data.username && data.username !== user.username) {
+                const usernameCheck = await userRepository.getUserByUsername(data.username);
+                if (usernameCheck) {
+                    throw new HttpError(403, "Username already in use");
+                }
+            }
+            // Hash password if it's being updated
+            if (data.password) {
+                data.password = await bcryptjs.hash(data.password, 10);
+            }
+            const updatedUser = await userRepository.updateUser(id, data);
+            return updatedUser;
+        } catch (error: Error | any) {
+            throw new HttpError(error.statusCode ?? 500, error.message || "Failed to update user");
+        }
     }
 }
