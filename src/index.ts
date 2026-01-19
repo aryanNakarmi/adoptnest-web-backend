@@ -4,6 +4,7 @@ import { connectDatabase } from './database/mongodb';
 import { PORT } from './config';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.route';
+import cors from 'cors';
 
 dotenv.config();
 //can use .env variable below this
@@ -11,6 +12,14 @@ console.log(process.env.PORT);
 
 const app: Application = express();
 // const PORT: number = 3000;
+
+
+const corsOptions = {
+    origin:[ 'http://localhost:3000', 'http://localhost:3003', 'http://localhost:3005' ],
+    optionsSuccessStatus: 200,
+    credentials: true,
+};
+app.use(cors(corsOptions));
 
 app.use(bodyParser.json());
 
