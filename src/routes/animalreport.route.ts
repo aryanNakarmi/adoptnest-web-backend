@@ -15,23 +15,17 @@ router.post(
   controller.uploadReportPhoto
 );
 
-router.post('/', protect, controller.createReport);
-
-
-router.get('/all', protect, controller.getAllReports);
-
-
-router.get('/:id', protect, controller.getReportById);
-
-
-// loggedin user get their own reports
+router.get('/all', protect,adminMiddleware, controller.getAllReports);
 router.get('/my-reports', protect, controller.getMyReports);
-
-
-// Admin only: approve or reject a report
+router.post('/', protect, controller.createReport);
+router.get('/:id', protect, controller.getReportById);
 router.put('/:id/status', protect, adminMiddleware, controller.updateReportStatus);
+router.delete('/:id', protect, controller.deleteReport);
 
-// Admin 
-router.delete('/:id', protect,adminMiddleware, controller.deleteReport);
+
+
+
+
+
 
 export default router;

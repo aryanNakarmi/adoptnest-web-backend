@@ -4,6 +4,7 @@ import { connectDatabase } from './database/mongodb';
 import { PORT } from './config';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.route';
+import animalReportRoutes from './routes/animalreport.route';
 import cors from 'cors';
 
 dotenv.config();
@@ -26,6 +27,7 @@ app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
 app.use("/api/v1/auth",authRoutes);
+app.use('/api/v1/reports', animalReportRoutes);
 
 app.get('/', (req:Request, res:Response) =>{
       return res.status(200).json({ success: "true", message: "Welcome to the API" });
