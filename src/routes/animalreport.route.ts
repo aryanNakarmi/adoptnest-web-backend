@@ -21,9 +21,7 @@ router.post('/', protect, controller.createReport);
 router.get('/:id', protect, controller.getReportById);
 router.put('/:id/status', protect, adminMiddleware, controller.updateReportStatus);
 router.delete('/:id', protect, controller.deleteReport);
-
-
-
+router.get('/species/:species', protect, controller.getReportsBySpecies);
 
 
 

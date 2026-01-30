@@ -4,6 +4,7 @@ import { Request, Response } from "express";
 import z from "zod";
 import fs from "fs";
 import path from "path";
+import mongoose from "mongoose";
 
 interface AuthRequest extends Request {
     user?: any;
@@ -125,36 +126,37 @@ async getReportById(req: AuthRequest, res: Response) {
 }
 
 
-    // ===================== GET MY REPORTS (USER DASHBOARD) =====================
-    async getMyReports(req: AuthRequest, res: Response) {
-        try {
-            const userId = req.user._id;
-            const page = parseInt(req.query.page as string) || 1;
-            const limit = parseInt(req.query.limit as string) || 10;
-            const skip = (page - 1) * limit;
+// ===================== GET MY REPORTS (USER DASHBOARD) =====================
+async getMyReports(req: AuthRequest, res: Response) {
+    try {
+        const userId = new mongoose.Types.ObjectId(req.user._id); // <--- convert string to ObjectId
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 10;
+        const skip = (page - 1) * limit;
 
-            const total = await AnimalReportModel.countDocuments({ reportedBy: userId });
-            const reports = await AnimalReportModel.find({ reportedBy: userId })
-                .sort({ createdAt: -1 })
-                .skip(skip)
-                .limit(limit);
+        const total = await AnimalReportModel.countDocuments({ reportedBy: req.user._id });
+        const reports = await AnimalReportModel.find({ reportedBy: req.user._id })
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
 
-            return res.status(200).json({
-                success: true,
-                message: "Your reports fetched successfully",
-                count: reports.length,
-                total,
-                page,
-                pages: Math.ceil(total / limit),
-                data: reports,
-            });
-        } catch (error: any) {
-            return res.status(error.statusCode ?? 500).json({
-                success: false,
-                message: error.message || "Failed to fetch your reports",
-            });
-        }
+        return res.status(200).json({
+            success: true,
+            message: "Your reports fetched successfully",
+            count: reports.length,
+            total,
+            page,
+            pages: Math.ceil(total / limit),
+            data: reports,
+        });
+    } catch (error: any) {
+        return res.status(error.statusCode ?? 500).json({
+            success: false,
+            message: error.message || "Failed to fetch your reports",
+        });
     }
+}
+
 
     // ===================== UPDATE REPORT STATUS (ADMIN ONLY) =====================
     async updateReportStatus(req: AuthRequest, res: Response) {
@@ -223,6 +225,36 @@ async deleteReport(req: AuthRequest, res: Response) {
         return res.status(error.statusCode ?? 500).json({
             success: false,
             message: error.message || "Failed to delete report",
+        });
+    }
+}
+// ===================== GET REPORTS BY SPECIES =====================
+async getReportsBySpecies(req: AuthRequest, res: Response) {
+    try {
+        const { species } = req.params;
+
+        if (!species || typeof species !== 'string') {
+            return res.status(400).json({
+                success: false,
+                message: "Species query parameter is required",
+            });
+        }
+
+        const reports = await AnimalReportModel.find({
+            species: { $regex: new RegExp(species, 'i') } // case-insensitive
+        }).populate("reportedBy", "fullName email")
+          .sort({ createdAt: -1 });
+
+        return res.status(200).json({
+            success: true,
+            message: `Reports filtered by species: ${species}`,
+            count: reports.length,
+            data: reports,
+        });
+    } catch (error: any) {
+        return res.status(error.statusCode ?? 500).json({
+            success: false,
+            message: error.message || "Failed to fetch reports by species",
         });
     }
 }
