@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { AuthController } from "../controllers/auth.controller";
+import { protect } from "../middleware/authorized.middleware";
 
 let authController = new AuthController();
 const router = Router();
@@ -9,9 +10,9 @@ router.post("/login", authController.login)
 
 //user routes
 
-router.get("/",authController.getAllUsers)
-router.get("/:id",authController.getUserById)
-router.delete("/:id",authController.deleteUser)
+router.get("/", protect,authController.getAllUsers)
+router.get("/:id",protect,authController.getUserById)
+router.delete("/:id",protect,authController.deleteUser)
 
 
 export default router;

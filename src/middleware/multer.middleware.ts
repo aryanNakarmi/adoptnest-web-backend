@@ -7,41 +7,34 @@ import fs from 'fs';
 const maxImageSize: number = 5 * 1024 * 1024; // 5MB for images
 const maxVideoSize: number = 50 * 1024 * 1024; // 50MB for videos
 
-/**
- * Create all required directories if they don't exist
- * This runs automatically when the app starts
- */
+
 const createDirectories = () => {
     const directories = [
-        path.join('public', 'animal_reports'),    // For client animal reports (lost/found)
-        path.join('public', 'animal_posts'),      // For admin adoption posts
-        path.join('public', 'profile_pictures'),  // For user profile pictures
+        path.join('public', 'animal_reports'),    
+        path.join('public', 'animal_posts'),     
+        path.join('public', 'profile_pictures'), 
     ];
 
     directories.forEach(dir => {
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, { recursive: true });
-            console.log(`✅ Created directory: ${dir}`);
+            console.log(`Created directory: ${dir}`);
         } else {
-            console.log(`✅ Directory exists: ${dir}`);
+            console.log(`Directory exists: ${dir}`);
         }
     });
 };
 
-// Create directories on startup
+
 createDirectories();
 
-/**
- * Configure multer storage
- * Routes files to appropriate directories based on field name
- */
 const storage: StorageEngine = multer.diskStorage({
     destination: (
         req: Request,
         file: Express.Multer.File,
         cb: (error: Error | null, destination: string) => void
     ): void => {
-        // Client reports lost/found animals
+       
         if (file.fieldname === 'animalReport') {
             cb(null, path.join('public', 'animal_reports'));
         }
@@ -66,7 +59,7 @@ const storage: StorageEngine = multer.diskStorage({
         const ext = path.extname(file.originalname);
         let prefix = 'file';
 
-        // Set prefix based on field name
+       
         if (file.fieldname === 'animalReport') {
             prefix = 'report';
         } else if (file.fieldname === 'animalPost') {
@@ -75,8 +68,6 @@ const storage: StorageEngine = multer.diskStorage({
             prefix = 'profile';
         }
 
-        // Generate filename: prefix-timestamp.ext
-        // Example: report-1704067200000.jpg
         cb(null, `${prefix}-${Date.now()}${ext}`);
     },
 });
@@ -108,23 +99,11 @@ const fileFilter = (
     return;
 };
 
-/**
- * Multer instance for all image uploads
- * Used for: animalReport, animalPost, profilePicture
- * 
- * Usage examples:
- * - uploadImage.single('animalReport')
- * - uploadImage.single('profilePicture')
- * - uploadImage.array('animalPost', 5)  // Multiple photos for adoption post
- */
 export const uploadImage = multer({
     storage: storage,
     fileFilter: fileFilter,
     limits: { fileSize: maxImageSize }, // 5MB limit
 });
 
-/**
- * Export for backward compatibility
- */
 const upload = uploadImage;
 export default upload;
