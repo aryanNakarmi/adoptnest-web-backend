@@ -1,25 +1,13 @@
 import { AnimalReportModel } from "../models/animalreport.model";
-import { CreateAnimalReportDTO } from "../dtos/animalreport.dto";
+import { CreateAnimalReportDTO, RejectReportDTO } from "../dtos/animalreport.dto";
 import { Request, Response } from "express";
-import { z } from "zod";
+import z from "zod";
 import fs from "fs";
 import path from "path";
 
 interface AuthRequest extends Request {
     user?: any;
 }
-
-const animalReport = (report: any) => ({
-    reportId: report._id.toString(),
-    species: report.species,
-    location: report.location,
-    description: report.description || null,
-    imageUrl: report.imageUrl,
-    reportedBy: report.reportedBy._id?.toString() || report.reportedBy,
-    status: report.status,
-    createdAt: report.createdAt,
-    updatedAt: report.updatedAt,
-});
 
 export class AnimalReportController {
     // ===================== UPLOAD PHOTO =====================
@@ -42,14 +30,14 @@ export class AnimalReportController {
         }
     }
 
-    // ===================== CREATE REPORT =====================
+    // ===================== CREATE REPORT (USER) =====================
     async createReport(req: AuthRequest, res: Response) {
         try {
             const parsedData = CreateAnimalReportDTO.safeParse(req.body);
             if (!parsedData.success) {
-                return res.status(400).json({ 
-                    success: false, 
-                    message: z.prettifyError(parsedData.error) 
+                return res.status(400).json({
+                    success: false,
+                    message: z.prettifyError(parsedData.error),
                 });
             }
 
@@ -60,16 +48,14 @@ export class AnimalReportController {
                 location,
                 description,
                 imageUrl,
-                reportedBy: req.user._id,
-                status: "pending",
+                reportedBy: req.user._id, // user id from auth middleware
+                status: "pending", // default pending
             });
-
-            await report.populate("reportedBy", "fullName");
 
             return res.status(201).json({
                 success: true,
                 message: "Animal report created successfully",
-                data: animalReport(report),
+                data: report,
             });
         } catch (error: any) {
             return res.status(error.statusCode ?? 500).json({
@@ -79,29 +65,28 @@ export class AnimalReportController {
         }
     }
 
-    // ===================== GET ALL APPROVED REPORTS =====================
-    async getAllAnimalReports(req: Request, res: Response) {
+    // ===================== GET ALL REPORTS (ADMIN) =====================
+    async getAllReports(req: AuthRequest, res: Response) {
         try {
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 10;
             const skip = (page - 1) * limit;
 
-            const filter = { status: "approved" };
-            const total = await AnimalReportModel.countDocuments(filter);
-            const reports = await AnimalReportModel.find(filter)
-                .populate("reportedBy", "fullName")
+            const total = await AnimalReportModel.countDocuments({});
+            const reports = await AnimalReportModel.find({})
+                .populate("reportedBy", "fullName email")
                 .sort({ createdAt: -1 })
                 .skip(skip)
                 .limit(limit);
 
             return res.status(200).json({
                 success: true,
-                message: "Reports fetched successfully",
+                message: "All reports fetched successfully",
                 count: reports.length,
                 total,
                 page,
                 pages: Math.ceil(total / limit),
-                data: reports.map(animalReport),
+                data: reports,
             });
         } catch (error: any) {
             return res.status(error.statusCode ?? 500).json({
@@ -110,43 +95,46 @@ export class AnimalReportController {
             });
         }
     }
+// ===================== GET REPORT BY ID (ADMIN or OWNER) =====================
+async getReportById(req: AuthRequest, res: Response) {
+    try {
+        const { id } = req.params;
+        if (!id) return res.status(400).json({ success: false, message: "Report ID is required" });
 
-    // ===================== GET SINGLE REPORT =====================
-    async getAnimalReportById(req: AuthRequest, res: Response) {
-        try {
-            const { id } = req.params;
-            if (!id) return res.status(400).json({ success: false, message: "Report ID is required" });
+        const report = await AnimalReportModel.findById(id).populate("reportedBy", "fullName email");
+        if (!report) return res.status(404).json({ success: false, message: "Report not found" });
 
-            const report = await AnimalReportModel.findById(id).populate("reportedBy", "fullName");
-            if (!report) return res.status(404).json({ success: false, message: "Report not found" });
+        // safely get reportedBy ID
+        const reportedById = (report.reportedBy as any)?._id?.toString() || report.reportedBy?.toString();
 
-            // Only approved or owner can view
-            if (report.status !== "approved" && req.user?._id !== report.reportedBy._id.toString()) {
-                return res.status(403).json({ success: false, message: "You do not have permission to view this report" });
-            }
-
-            return res.status(200).json({ success: true, data: animalReport(report) });
-        } catch (error: any) {
-            return res.status(error.statusCode ?? 500).json({
-                success: false,
-                message: error.message || "Failed to fetch report",
-            });
+        if (report.status !== "approved" && req.user._id.toString() !== reportedById && req.user.role !== "admin") {
+            return res.status(403).json({ success: false, message: "You do not have permission to view this report" });
         }
-    }
 
-    // ===================== GET MY REPORTS =====================
+        return res.status(200).json({
+            success: true,
+            message: "Report fetched successfully",
+            data: report,
+        });
+    } catch (error: any) {
+        return res.status(error.statusCode ?? 500).json({
+            success: false,
+            message: error.message || "Failed to fetch report",
+        });
+    }
+}
+
+
+    // ===================== GET MY REPORTS (USER DASHBOARD) =====================
     async getMyReports(req: AuthRequest, res: Response) {
         try {
-            const userId = req.user?._id;
-            if (!userId) return res.status(400).json({ success: false, message: "User ID not provided" });
-
+            const userId = req.user._id;
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 10;
             const skip = (page - 1) * limit;
 
             const total = await AnimalReportModel.countDocuments({ reportedBy: userId });
             const reports = await AnimalReportModel.find({ reportedBy: userId })
-                .populate("reportedBy", "fullName")
                 .sort({ createdAt: -1 })
                 .skip(skip)
                 .limit(limit);
@@ -158,7 +146,7 @@ export class AnimalReportController {
                 total,
                 page,
                 pages: Math.ceil(total / limit),
-                data: reports.map(animalReport),
+                data: reports,
             });
         } catch (error: any) {
             return res.status(error.statusCode ?? 500).json({
@@ -168,35 +156,75 @@ export class AnimalReportController {
         }
     }
 
-    // ===================== DELETE REPORT =====================
-    async deleteReport(req: AuthRequest, res: Response) {
+    // ===================== UPDATE REPORT STATUS (ADMIN ONLY) =====================
+    async updateReportStatus(req: AuthRequest, res: Response) {
         try {
-            const userId = req.user?._id;
             const { id } = req.params;
-            if (!userId) return res.status(400).json({ success: false, message: "User ID not provided" });
-            if (!id) return res.status(400).json({ success: false, message: "Report ID is required" });
+            const parsedData = RejectReportDTO.safeParse(req.body); // for reason if rejected
+            if (!parsedData.success) {
+                return res.status(400).json({
+                    success: false,
+                    message: z.prettifyError(parsedData.error),
+                });
+            }
+
+            const { rejectionReason } = parsedData.data;
+            const { status } = req.body; // status: "approved" | "rejected"
 
             const report = await AnimalReportModel.findById(id);
             if (!report) return res.status(404).json({ success: false, message: "Report not found" });
 
-            if (report.reportedBy.toString() !== userId.toString() && req.user.role !== "admin") {
-                return res.status(403).json({ success: false, message: "Not authorized to delete this report" });
-            }
+            report.status = status;
+            if (status === "rejected") report.description = `${report.description || ""}\nRejection reason: ${rejectionReason}`;
+            await report.save();
 
-            // Delete image if exists
-            if (report.imageUrl) {
-                const imagePath = path.join(__dirname, `../public/animal_reports/${report.imageUrl}`);
-                try { if (fs.existsSync(imagePath)) fs.unlinkSync(imagePath); } 
-                catch (err) { console.log("Error deleting image:", err); }
-            }
-
-            await AnimalReportModel.findByIdAndDelete(id);
-            return res.status(200).json({ success: true, message: "Report deleted successfully" });
+            return res.status(200).json({
+                success: true,
+                message: `Report ${status} successfully`,
+                data: report,
+            });
         } catch (error: any) {
             return res.status(error.statusCode ?? 500).json({
                 success: false,
-                message: error.message || "Failed to delete report",
+                message: error.message || "Failed to update report",
             });
         }
     }
+// ===================== DELETE REPORT (ADMIN OR OWNER) =====================
+async deleteReport(req: AuthRequest, res: Response) {
+    try {
+        const { id } = req.params;
+        const userId = req.user._id;
+
+        if (!id) return res.status(400).json({ success: false, message: "Report ID is required" });
+
+        const report = await AnimalReportModel.findById(id);
+        if (!report) return res.status(404).json({ success: false, message: "Report not found" });
+
+        const reportedById = (report.reportedBy as any)?._id?.toString() || report.reportedBy?.toString();
+
+        if (req.user.role !== "admin" && reportedById !== userId.toString()) {
+            return res.status(403).json({ success: false, message: "Not authorized to delete this report" });
+        }
+
+        // Delete image if exists
+        if (report.imageUrl) {
+            const imagePath = path.join(__dirname, `../public/animal_reports/${report.imageUrl}`);
+            if (fs.existsSync(imagePath)) fs.unlinkSync(imagePath);
+        }
+
+        await AnimalReportModel.findByIdAndDelete(id);
+
+        return res.status(200).json({
+            success: true,
+            message: "Report deleted successfully",
+        });
+    } catch (error: any) {
+        return res.status(error.statusCode ?? 500).json({
+            success: false,
+            message: error.message || "Failed to delete report",
+        });
+    }
+}
+
 }
