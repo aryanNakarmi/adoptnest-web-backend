@@ -18,10 +18,14 @@ export class AnimalReportController {
                 return res.status(400).json({ success: false, message: "Please upload a photo" });
             }
 
+            const imageUrl = `${req.protocol}://${req.get("host")}/animal_reports/${req.file.filename}`;
+            
+                
+
             return res.status(200).json({
                 success: true,
                 message: "Photo uploaded successfully",
-                data: req.file.filename,
+                data: imageUrl,
             });
         } catch (error: any) {
             return res.status(error.statusCode ?? 500).json({
@@ -210,11 +214,21 @@ async deleteReport(req: AuthRequest, res: Response) {
         }
 
         // Delete image if exists
-        if (report.imageUrl) {
-            const imagePath = path.join(__dirname, `../public/animal_reports/${report.imageUrl}`);
-            if (fs.existsSync(imagePath)) fs.unlinkSync(imagePath);
-        }
+          if (report.imageUrl) {
+                const filename = report.imageUrl.split("/").pop();
+                if (filename) {
+                    const imagePath = path.join(
+                        process.cwd(),
+                        "public",
+                        "animal_reports",
+                        filename
+                    );
 
+                    if (fs.existsSync(imagePath)) {
+                        fs.unlinkSync(imagePath);
+                    }
+                }
+            }
         await AnimalReportModel.findByIdAndDelete(id);
 
         return res.status(200).json({
@@ -228,6 +242,8 @@ async deleteReport(req: AuthRequest, res: Response) {
         });
     }
 }
+
+
 // ===================== GET REPORTS BY SPECIES =====================
 async getReportsBySpecies(req: AuthRequest, res: Response) {
     try {

@@ -5,14 +5,12 @@ import fs from 'fs';
 
 // File size limits
 const maxImageSize: number = 5 * 1024 * 1024; // 5MB for images
-const maxVideoSize: number = 50 * 1024 * 1024; // 50MB for videos
-
 
 const createDirectories = () => {
     const directories = [
-        path.join('public', 'animal_reports'),    
-        path.join('public', 'animal_posts'),     
-        path.join('public', 'profile_pictures'), 
+        path.join(process.cwd(), 'public', 'animal_reports'),    
+        path.join(process.cwd(), 'public', 'animal_posts'),     
+        path.join(process.cwd(), 'public', 'profile_pictures'), 
     ];
 
     directories.forEach(dir => {
@@ -25,7 +23,6 @@ const createDirectories = () => {
     });
 };
 
-
 createDirectories();
 
 const storage: StorageEngine = multer.diskStorage({
@@ -34,19 +31,17 @@ const storage: StorageEngine = multer.diskStorage({
         file: Express.Multer.File,
         cb: (error: Error | null, destination: string) => void
     ): void => {
-       
         if (file.fieldname === 'animalReport') {
-            cb(null, path.join('public', 'animal_reports'));
+            const destPath = path.join(process.cwd(), 'public', 'animal_reports');
+            console.log(`📁 Uploading to: ${destPath}`);
+            cb(null, destPath);
         }
-        // Admin posts animals for adoption
         else if (file.fieldname === 'animalPost') {
-            cb(null, path.join('public', 'animal_posts'));
+            cb(null, path.join(process.cwd(), 'public', 'animal_posts'));
         }
-        // User profile pictures
         else if (file.fieldname === 'profilePicture') {
-            cb(null, path.join('public', 'profile_pictures'));
+            cb(null, path.join(process.cwd(), 'public', 'profile_pictures'));
         }
-        // Invalid field name
         else {
             cb(new Error('Invalid field name for upload.'), '');
         }
@@ -59,7 +54,6 @@ const storage: StorageEngine = multer.diskStorage({
         const ext = path.extname(file.originalname);
         let prefix = 'file';
 
-       
         if (file.fieldname === 'animalReport') {
             prefix = 'report';
         } else if (file.fieldname === 'animalPost') {
@@ -68,19 +62,17 @@ const storage: StorageEngine = multer.diskStorage({
             prefix = 'profile';
         }
 
-        cb(null, `${prefix}-${Date.now()}${ext}`);
+        const filename = `${prefix}-${Date.now()}${ext}`;
+        console.log(`📸 Saving file: ${filename}`);
+        cb(null, filename);
     },
 });
 
-/**
- * File filter - validates file types based on field name
- */
 const fileFilter = (
     req: Request,
     file: Express.Multer.File,
     cb: FileFilterCallback
 ): void => {
-    // Only allow images (jpg, jpeg, png, gif)
     if (
         file.fieldname === 'animalReport' ||
         file.fieldname === 'animalPost' ||
@@ -94,7 +86,6 @@ const fileFilter = (
         return;
     }
 
-    // Invalid field name
     cb(new Error('Invalid field name for upload.'));
     return;
 };
@@ -102,8 +93,7 @@ const fileFilter = (
 export const uploadImage = multer({
     storage: storage,
     fileFilter: fileFilter,
-    limits: { fileSize: maxImageSize }, // 5MB limit
+    limits: { fileSize: maxImageSize },
 });
 
-const upload = uploadImage;
-export default upload;
+export default uploadImage;
