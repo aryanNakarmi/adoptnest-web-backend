@@ -18,9 +18,8 @@ export class AnimalReportController {
                 return res.status(400).json({ success: false, message: "Please upload a photo" });
             }
 
-            const imageUrl = `${req.protocol}://${req.get("host")}/animal_reports/${req.file.filename}`;
+             const imageUrl = `/animal_reports/${req.file.filename}`;
             
-                
 
             return res.status(200).json({
                 success: true,

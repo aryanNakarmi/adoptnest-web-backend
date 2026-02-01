@@ -18,7 +18,7 @@ const app: Application = express();
 
 const corsOptions = {
     origin:[ 
-        'http://localhost:3000', 'http://localhost:3003', 'http://localhost:3005','http://192.168.1.3:5050',
+        'http://localhost:3000', 'http://localhost:3003', 'http://localhost:3005','http://192.168.1.7:5050',
     ],
     optionsSuccessStatus: 200,
     credentials: true,
@@ -42,9 +42,9 @@ app.get('/', (req:Request, res:Response) =>{
 async function startServer() {
  await connectDatabase();
  
- app.listen(PORT,() => {
-     console.log(`Server :http://localhost:${PORT}`);
- }
-);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on http://${process.env.COMPUTER_IP}:${PORT}`);
+});
+
 }
 startServer();

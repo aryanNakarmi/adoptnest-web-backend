@@ -33,7 +33,7 @@ const storage: StorageEngine = multer.diskStorage({
     ): void => {
         if (file.fieldname === 'animalReport') {
             const destPath = path.join(process.cwd(), 'public', 'animal_reports');
-            console.log(`📁 Uploading to: ${destPath}`);
+            console.log(`Uploading to: ${destPath}`);
             cb(null, destPath);
         }
         else if (file.fieldname === 'animalPost') {

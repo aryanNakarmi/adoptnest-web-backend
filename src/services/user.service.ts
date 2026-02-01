@@ -4,25 +4,33 @@ import  bcryptjs from "bcryptjs"
 import { HttpError } from "../errors/http-error";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../config";
+import { IUser } from "../models/user.model";
 
 let userRepository = new UserRepository();
 
 export class UserService {
-    async createUser(data: CreateUserDTO){
-        // business logic before creating user
-        const emailCheck = await userRepository.getUserByEmail(data.email);
-        if(emailCheck){
-            throw new HttpError(403, "Email already in use");
-        }
-    
-        // hash password
-        const hashedPassword = await bcryptjs.hash(data.password, 10); // 10 - complexity
-        data.password = hashedPassword;
-
-        // create user
-        const newUser = await userRepository.createUser(data);
-        return newUser;
+ async createUser(data: CreateUserDTO) {
+    const emailCheck = await userRepository.getUserByEmail(data.email);
+    if (emailCheck) {
+        throw new HttpError(403, "Email already in use");
     }
+
+    // hash password
+    const hashedPassword = await bcryptjs.hash(data.password, 10);
+
+    const userData: Partial<IUser> = {
+        fullName: data.fullName,
+        email: data.email,
+        password: hashedPassword,
+        phoneNumber: data.phoneNumber ?? undefined,
+        profilePicture: data.profilePicture ?? undefined, // <-- fix here
+        role: data.role ?? "user"
+    };
+
+    const newUser = await userRepository.createUser(userData);
+    return newUser;
+}
+
 
     async   loginUser(data: LoginUserDTO){
         const user =  await userRepository.getUserByEmail(data.email);
@@ -85,32 +93,37 @@ export class UserService {
             throw new HttpError(error.statusCode ?? 500, error.message || "Failed to delete user");
         }
     }
+async updateUser(id: string, data: Partial<CreateUserDTO>) {
+    try {
+        if (!id) throw new HttpError(400, "User ID is required");
 
-    async updateUser(id: string, data: Partial<CreateUserDTO>) {
-        try {
-            if (!id) {
-                throw new HttpError(400, "User ID is required");
-            }
-            const user = await userRepository.getUserById(id);
-            if (!user) {
-                throw new HttpError(404, "User not found");
-            }
-            // Check if email is being updated and if it's already in use
-            if (data.email && data.email !== user.email) {
-                const emailCheck = await userRepository.getUserByEmail(data.email);
-                if (emailCheck) {
-                    throw new HttpError(403, "Email already in use");
-                }
-            }
-    
-            // Hash password if it's being updated
-            if (data.password) {
-                data.password = await bcryptjs.hash(data.password, 10);
-            }
-            const updatedUser = await userRepository.updateUser(id, data);
-            return updatedUser;
-        } catch (error: Error | any) {
-            throw new HttpError(error.statusCode ?? 500, error.message || "Failed to update user");
+        const user = await userRepository.getUserById(id);
+        if (!user) throw new HttpError(404, "User not found");
+
+        // Check email uniqueness
+        if (data.email && data.email !== user.email) {
+            const emailCheck = await userRepository.getUserByEmail(data.email);
+            if (emailCheck) throw new HttpError(403, "Email already in use");
         }
+
+        // Map DTO to IUser-compatible object
+        const updateData: Partial<IUser> = {
+            fullName: data.fullName,
+            email: data.email,
+            phoneNumber: data.phoneNumber ?? undefined,
+            profilePicture: data.profilePicture ?? undefined,
+            role: data.role ?? user.role
+        };
+
+        // Hash password if provided
+        if (data.password) {
+            updateData.password = await bcryptjs.hash(data.password, 10);
+        }
+
+        const updatedUser = await userRepository.updateUser(id, updateData);
+        return updatedUser;
+    } catch (error: any) {
+        throw new HttpError(error.statusCode ?? 500, error.message || "Failed to update user");
     }
+}
 }

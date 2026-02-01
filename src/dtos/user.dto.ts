@@ -8,8 +8,12 @@ export const CreateUserDTO = UserSchema.pick(
         email: true,
         password: true,
         phoneNumber: true,
+
     }
-)
+).extend({
+    profilePicture: z.string().optional().nullable(),
+    role: z.enum(["user", "admin"]).optional(),
+})
 // .extend( // add new attribute to zod
 //     {
 //         confirmPassword: z.string().min(6)
