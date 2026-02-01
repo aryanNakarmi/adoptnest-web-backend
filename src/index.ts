@@ -5,6 +5,7 @@ import { PORT } from './config';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.route';
 import animalReportRoutes from './routes/animalreport.route';
+import adminRoutes from './routes/admin.route';
 import cors from 'cors';
 import path from 'path';
 
@@ -30,8 +31,11 @@ app.use(bodyParser.json());
 const publicPath = path.join(process.cwd(), 'public');
 app.use('/animal_reports', express.static(path.join(publicPath, 'animal_reports')));
 app.use('/animal_posts', express.static(path.join(publicPath, 'animal_posts')))
+app.use('/profile_pictures', express.static(path.join(publicPath, 'profile_pictures')))
+app.use('/animal_posts', express.static(path.join(publicPath, 'animal_posts')));
 
 app.use("/api/v1/auth",authRoutes);
+app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/reports', animalReportRoutes);
 
 
