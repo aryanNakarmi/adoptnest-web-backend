@@ -1,5 +1,5 @@
 import { UserService } from "../services/user.service";
-import { CreateUserDTO, LoginUserDTO } from "../dtos/user.dto";
+import { CreateUserDTO, LoginUserDTO, UpdateUserDTO } from "../dtos/user.dto";
 import { Request, Response } from "express";
 import z from "zod";
 
@@ -154,6 +154,58 @@ export class AuthController {
         } catch (error: Error | any) {
             return res.status(error.statusCode ?? 500).json(
                 { success: false, message: error.message || "Failed to delete user" }
+            );
+        }
+    }
+
+     async updateProfile(req: Request, res: Response) {
+    try {
+      const userId = req.user?._id;
+      if (!userId) {
+        return res
+          .status(400)
+          .json({ success: false, message: "User Id Not found" });
+      }
+      const parsedData = UpdateUserDTO.safeParse(req.body);
+      if (!parsedData.success) {
+        return res
+          .status(400)
+          .json({ success: false, message: z.prettifyError(parsedData.error) }); // z.prettifyError - better error messages (zod)
+      }
+      if (req.file) {
+        parsedData.data.profilePicture = `/profile_pictures/${req.file.filename}`;
+      }
+      const updatedUser = await userService.updateUser(userId, parsedData.data);
+      return res.status(200).json({
+        success: true,
+        data: updatedUser,
+        message: "User profile updated successfully",
+      });
+    } catch (error: Error | any) {
+      return res.status(error.statusCode || 500).json({
+        success: false,
+        message: error.message || "Internal Server Error",
+      });
+    }
+}
+
+    async requestPasswordReset(req: Request, res: Response) {
+        try {
+            const email = req.body.email;
+            if (!email) {
+                return res.status(400).json(
+                    { success: false, message: "Email is required" }
+                );
+            }
+            const user = await userService.sendResetPasswordEmail(email);
+            return res.status(200).json(
+                { success: true,
+                    data: user,
+                    message: "Password reset email sent" }
+            );
+        }catch (error: Error | any) {
+            return res.status(error.statusCode ?? 500).json(
+                { success: false, message: error.message || "Internal Server Error" }
             );
         }
     }

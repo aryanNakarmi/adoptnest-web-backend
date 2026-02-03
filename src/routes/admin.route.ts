@@ -12,4 +12,4 @@ router.get('/users/:id', protect, adminMiddleware, controller.getUserById);
 router.put('/users/:id', protect, adminMiddleware, uploadImage.single('profilePicture'), controller.updateUser);
 router.delete('/users/:id', protect, adminMiddleware, controller.deleteUser);
 
-export default router;
+export default router;  

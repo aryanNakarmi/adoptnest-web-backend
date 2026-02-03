@@ -63,7 +63,7 @@ const storage: StorageEngine = multer.diskStorage({
         }
 
         const filename = `${prefix}-${Date.now()}${ext}`;
-        console.log(`📸 Saving file: ${filename}`);
+        console.log(`Saving file: ${filename}`);
         cb(null, filename);
     },
 });

@@ -128,8 +128,8 @@ async updateUser(id: string, data: Partial<CreateUserDTO>) {
     } catch (error: any) {
         throw new HttpError(error.statusCode ?? 500, error.message || "Failed to update user");
     }
-}
-async sendResetPasswordEmail(email?: string) {
+    }
+    async sendResetPasswordEmail(email?: string) {
         if (!email) {
             throw new HttpError(400, "Email is required");
         }

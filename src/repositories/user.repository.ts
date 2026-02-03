@@ -27,13 +27,18 @@ export class UserRepository implements IUserRepository {
         const users = await UserModel.find();
         return users;
     }
-    async updateUser(id: string, updateData: Partial<IUser>): Promise<IUser | null> {
-        // UserModel.updateOne({ _id: id }, { $set: updateData });
-        const updatedUser = await UserModel.findByIdAndUpdate(
-            id, updateData, { new: true } // return the updated document
+    async updateUser(id: string, data: Partial<IUser>): Promise<IUser | null> {
+    try {
+        const user = await UserModel.findByIdAndUpdate(
+            id,
+            data,
+            { new: true }  // ← Returns updated document
         );
-        return updatedUser;
+        return user;
+    } catch (error: Error | any) {
+        throw new Error(error.message || "Failed to update user");
     }
+}
     async deleteUser(id: string): Promise<boolean> {
         // UserModel.deleteOne({ _id: id });
         const result = await UserModel.findByIdAndDelete(id);
