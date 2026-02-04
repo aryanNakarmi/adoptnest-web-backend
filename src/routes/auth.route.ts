@@ -22,5 +22,6 @@ router.get("/", protect,authController.getAllUsers)
 router.get("/:id",protect,authController.getUserById.bind(authController))
 router.delete("/:id",protect,authController.deleteUser)
 
+router.post("/reset-password/:token", authController.resetPassword);
 
 export default router;
