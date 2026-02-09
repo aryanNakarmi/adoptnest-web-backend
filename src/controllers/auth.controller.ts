@@ -26,6 +26,8 @@ export class AuthController {
                     phoneNumber: newUser.phoneNumber || null,
                     profilePicture: newUser.profilePicture || null,
                     role: newUser.role,
+                    createdAt: newUser.createdAt,    // ← ADD THIS
+                    updatedAt: newUser.updatedAt 
                 }
             });
         } catch (error: Error | any) { // exception handling
@@ -54,6 +56,8 @@ export class AuthController {
                     phoneNumber: user.phoneNumber,
                     profilePicture: user.profilePicture,
                     role: user.role,
+                    createdAt: user.createdAt,    
+                    updatedAt: user.updatedAt 
                 }, token }
             );
 
@@ -117,6 +121,7 @@ export class AuthController {
                     profilePicture: user.profilePicture || null,
                     role: user.role,
                     createdAt: user.createdAt,
+                    updatedAt: user.updatedAt
                 }
             });
         } catch (error: Error | any) {

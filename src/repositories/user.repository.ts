@@ -3,7 +3,7 @@ export interface IUserRepository {
     getUserByEmail(email: string): Promise<IUser | null>;
     createUser(userData: Partial<IUser>): Promise<IUser>;
     getUserById(id: string): Promise<IUser | null>;
-    getAllUsers(): Promise<IUser[]>;
+    getAllUsers({ page, size, search }: { page: number, size: number, search?: string }): Promise<{ users: IUser[], totalUsers: number }>;  // ← CHANGE THIS LINE
     updateUser(id: string, updateData: Partial<IUser>): Promise<IUser | null>;
     deleteUser(id: string): Promise<boolean>;
 }
@@ -23,10 +23,10 @@ export class UserRepository implements IUserRepository {
         const user = await UserModel.findById(id);
         return user;
     }
-    async getAllUsers(): Promise<IUser[]> {
-        const users = await UserModel.find();
-        return users;
-    }
+    // async getAllUsers(): Promise<IUser[]> {
+    //     const users = await UserModel.find();
+    //     return users;
+    // }
     async updateUser(id: string, data: Partial<IUser>): Promise<IUser | null> {
     try {
         const user = await UserModel.findByIdAndUpdate(
@@ -44,4 +44,26 @@ export class UserRepository implements IUserRepository {
         const result = await UserModel.findByIdAndDelete(id);
         return result ? true : false;
     }
+
+    async getAllUsers({ page, size, search }: { page: number, size: number, search?: string }): Promise<{ users: IUser[], totalUsers: number }> {
+        let filter: any = {}
+        
+        if (search) {
+            filter.$or = [
+                { fullName: { $regex: search, $options: "i" } },
+                { email: { $regex: search, $options: "i" } },
+                { phoneNumber: { $regex: search, $options: "i" } }
+            ]
+        }
+        
+        const [users, totalUsers] = await Promise.all([
+            UserModel.find(filter)
+                .skip((page - 1) * size)
+                .limit(size)
+                .sort({ createdAt: -1 }),
+            UserModel.countDocuments(filter)
+        ]);
+        
+        return { users, totalUsers };
+}
 }
