@@ -162,39 +162,44 @@ async getMyReports(req: AuthRequest, res: Response) {
 
 
     // ===================== UPDATE REPORT STATUS (ADMIN ONLY) =====================
-    async updateReportStatus(req: AuthRequest, res: Response) {
-        try {
-            const { id } = req.params;
-            const parsedData = RejectReportDTO.safeParse(req.body); // for reason if rejected
-            if (!parsedData.success) {
-                return res.status(400).json({
-                    success: false,
-                    message: z.prettifyError(parsedData.error),
-                });
-            }
+   async updateReportStatus(req: AuthRequest, res: Response) {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
 
-            const { rejectionReason } = parsedData.data;
-            const { status } = req.body; // status: "approved" | "rejected"
-
-            const report = await AnimalReportModel.findById(id);
-            if (!report) return res.status(404).json({ success: false, message: "Report not found" });
-
-            report.status = status;
-            if (status === "rejected") report.description = `${report.description || ""}\nRejection reason: ${rejectionReason}`;
-            await report.save();
-
-            return res.status(200).json({
-                success: true,
-                message: `Report ${status} successfully`,
-                data: report,
-            });
-        } catch (error: any) {
-            return res.status(error.statusCode ?? 500).json({
-                success: false,
-                message: error.message || "Failed to update report",
-            });
-        }
+    if (!["approved", "rejected"].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid status value",
+      });
     }
+
+    const report = await AnimalReportModel.findById(id);
+    if (!report) {
+      return res.status(404).json({
+        success: false,
+        message: "Report not found",
+      });
+    }
+
+    report.status = status;
+
+    await report.save();
+
+    return res.status(200).json({
+      success: true,
+      message: `Report ${status} successfully`,
+      data: report,
+    });
+
+  } catch (error: any) {
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to update report",
+    });
+  }
+}
+
 // ===================== DELETE REPORT (ADMIN OR OWNER) =====================
 async deleteReport(req: AuthRequest, res: Response) {
     try {
