@@ -7,9 +7,9 @@ const router: Router = express.Router();
 const controller = new AdminController();
 
 router.post('/users', protect, adminMiddleware, uploadImage.single('profilePicture'), controller.createUser);
-router.get('/users', protect, adminMiddleware, controller.getAllUsers);
-router.get('/users/:id', protect, adminMiddleware, controller.getUserById);
 router.put('/users/:id', protect, adminMiddleware, uploadImage.single('profilePicture'), controller.updateUser);
 router.delete('/users/:id', protect, adminMiddleware, controller.deleteUser);
+router.get('/users', protect, adminMiddleware, controller.getAllUsers);
+router.get('/users/:id', protect, adminMiddleware, controller.getUserById);
 
 export default router;  

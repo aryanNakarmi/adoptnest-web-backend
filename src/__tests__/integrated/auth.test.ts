@@ -5,10 +5,10 @@ describe(
     'Authentication Routes', // test group/suite name
     () => { // function containing related tests
         const testUser = { // make this object as per your User schema
-            username: 'testuser',
+
             email: 'test@example.com',
             password: 'password123',
-            confirmPassword: 'password123',
+            phoneNumber: '1234567890',
             fullName: 'Test',
             
         }

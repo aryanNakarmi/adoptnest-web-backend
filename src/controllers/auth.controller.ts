@@ -68,29 +68,7 @@ export class AuthController {
         }
     }
 
-    async getAllUsers(req: Request, res: Response) {
-        try {
-            const users = await userService.getAllUsers();
-            return res.status(200).json({
-                success: true,
-                message: "Users retrieved successfully",
-                data: users.map(user => ({
-                    _id: user._id,
-                    fullName: user.fullName,
-                    email: user.email,
-                    phoneNumber: user.phoneNumber || null,
-                    profilePicture: user.profilePicture || null,
-                    role: user.role,
-                    createdAt: user.createdAt,
-                })),
-                count: users.length
-            });
-        } catch (error: Error | any) {
-            return res.status(error.statusCode ?? 500).json(
-                { success: false, message: error.message || "Failed to fetch users" }
-            );
-        }
-    }
+
 
     async getUserById(req: Request, res: Response) {
         try {
