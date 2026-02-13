@@ -15,7 +15,7 @@ export class UserService {
  async createUser(data: CreateUserDTO) {
     const emailCheck = await userRepository.getUserByEmail(data.email);
     if (emailCheck) {
-        throw new HttpError(403, "Email already in use");
+        throw new HttpError(409, "Email already in use");
     }
 
     // hash password
@@ -118,7 +118,7 @@ async updateUser(id: string, data: Partial<CreateUserDTO>) {
         // Check email uniqueness
         if (data.email && data.email !== user.email) {
             const emailCheck = await userRepository.getUserByEmail(data.email);
-            if (emailCheck) throw new HttpError(403, "Email already in use");
+            if (emailCheck) throw new HttpError(409, "Email already in use");
         }
 
         // Map DTO to IUser-compatible object
