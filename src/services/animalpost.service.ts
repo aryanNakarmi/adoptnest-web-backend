@@ -1,3 +1,5 @@
+import { CreateAnimalPostDTO, UpdateAnimalPostDTO } from "../dtos/animalpost.dto";
+import { animalPostRepository } from "../repositories/animalpost.repository";
 
 export class AnimalPostService {
     async createPost(data: CreateAnimalPostDTO) {
