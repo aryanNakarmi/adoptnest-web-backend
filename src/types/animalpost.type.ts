@@ -33,7 +33,7 @@ export const AnimalPostSchema = z.object({
         .min(1, "At least one photo is required"),
 
     // Optional for DB storage
-    status: z.enum(["Available", "Adopted", "Pending"]).optional(),
+    status: z.enum(["Available", "Adopted"]).optional(),
     adoptedBy: z.string().optional(),
 });
 

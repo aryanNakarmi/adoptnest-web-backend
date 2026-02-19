@@ -41,7 +41,7 @@ const animalSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['Available', 'Adopted', 'Pending'],
+      enum: ['Available', 'Adopted'],
       default: 'Available',
     },
     adoptionRequirements: {
