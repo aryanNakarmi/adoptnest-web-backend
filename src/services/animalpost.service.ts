@@ -1,4 +1,4 @@
-import { CreateAnimalPostDTO, UpdateAnimalPostDTO } from "../dtos/animalpost.dto";
+import { CreateAnimalPostDTO, UpdateAnimalPostDTO, UpdateAnimalPostStatusDTO } from "../dtos/animalpost.dto";
 import { animalPostRepository } from "../repositories/animalpost.repository";
 
 export class AnimalPostService {
