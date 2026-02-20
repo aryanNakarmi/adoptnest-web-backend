@@ -5,6 +5,7 @@ import { PORT } from './config';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.route';
 import animalReportRoutes from './routes/animalreport.route';
+import animalPostRoutes from './routes/animalpost.route';
 import adminRoutes from './routes/admin.route';
 import cors from 'cors';
 import path from 'path';
@@ -42,6 +43,7 @@ app.use('/profile_pictures', express.static(path.join(publicPath, 'profile_pictu
 app.use("/api/v1/auth",authRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/reports', animalReportRoutes);
+app.use('/api/v1/animal-posts', animalPostRoutes);
 
 
 app.get('/', (req:Request, res:Response) =>{
