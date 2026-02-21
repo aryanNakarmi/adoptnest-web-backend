@@ -29,7 +29,7 @@ export const AnimalPostSchema = z.object({
 
     location: z
         .string()
-        .min(1, "Location is required")
+        .min(1, "Location is required") 
         .min(3, "Location must be at least 3 characters")
         .trim(),
 
