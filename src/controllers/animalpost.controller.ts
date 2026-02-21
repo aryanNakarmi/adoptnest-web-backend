@@ -229,7 +229,7 @@ export class AnimalPostController {
       }
 
       await animalPostService.deletePost(id);
-
+        
       return res.status(200).json({
         success: true,
         message: "Animal post deleted successfully",

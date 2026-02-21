@@ -3,11 +3,11 @@ import { AnimalPostType } from "../types/animalpost.type";
 
 const AnimalPostSchema: Schema = new Schema<AnimalPostType>(
     {
-        species: { 
-            type: String, 
-            enum: ["Dog", "Cat", "Bird", "Rabbit", "Hamster", "Guinea Pig", "Other"],
-            required: true, 
-            trim: true 
+        species: {
+        type: String,
+        required: true,
+        trim: true,
+        maxlength: 50,
         },
         gender: { 
             type: String, 

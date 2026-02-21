@@ -1,12 +1,16 @@
 import z from "zod";
 
 export const AnimalPostSchema = z.object({
-    species: z
+   species: z
         .string()
-        .min(1, "Species is required")
-        .refine(
-            (val) => ["Dog", "Cat", "Bird", "Rabbit", "Hamster", "Guinea Pig", "Other"].includes(val),
-            "Species must be one of: Dog, Cat, Bird, Rabbit, Hamster, Guinea Pig, Other"
+        .min(2, "Species must be at least 2 characters")
+        .max(50, "Species cannot exceed 50 characters")
+        .transform((val) =>
+            val
+            .toLowerCase()
+            .split(" ")
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(" ")
         ),
 
     gender: z
