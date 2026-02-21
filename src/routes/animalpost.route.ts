@@ -6,33 +6,31 @@ import { AnimalPostController } from '../controllers/animalpost.controller';
 const router: Router = express.Router();
 const controller = new AnimalPostController();
 
-// Get all animal posts (for users to browse)
-router.get('/', controller.getAllPosts);
+// Public routes
+router.get('/', controller.getAllPosts);                     // GET all posts
+router.get('/species/:species', controller.getPostsBySpecies); // GET by species
 
-// Filter posts by species (for users adoption section)
-router.get('/species/:species', controller.getPostsBySpecies);
+router.get('/my-adoptions', protect, controller.getMyAdoptions);
 
+router.get('/:id', controller.getPostById);                 // GET single post by ID
 
-
-// Create new animal post
+// Admin routes
 router.post(
   '/',
   protect,
   adminMiddleware,
-  uploadImage.array('photos', 5),
+  uploadImage.array('animalPost', 5),
   controller.createPost
 );
 
-// Edit animal post 
 router.put(
   '/:id',
   protect,
   adminMiddleware,
-  uploadImage.array('photos', 5),
+  uploadImage.array('animalPost', 5),
   controller.updatePost
 );
 
-// Change post status 
 router.put(
   '/:id/status',
   protect,
@@ -40,7 +38,6 @@ router.put(
   controller.updatePostStatus
 );
 
-// Delete animal post
 router.delete(
   '/:id',
   protect,

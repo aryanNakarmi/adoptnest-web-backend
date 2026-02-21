@@ -5,6 +5,7 @@ export interface IAnimalPostRepository {
   createPost(postData: Partial<AnimalPostType>): Promise<IAnimalPost>;
   getPostById(id: string): Promise<IAnimalPost | null>;
   getAllPosts(): Promise<IAnimalPost[]>;
+  getMyAdoptions(userId: string): Promise<IAnimalPost[]>;
   getPostsBySpecies(species: string): Promise<IAnimalPost[]>;
   updatePostStatus(
     id: string,
@@ -29,6 +30,14 @@ export class AnimalPostRepository implements IAnimalPostRepository {
     return await AnimalPostModel.find()
       .populate("adoptedBy", "fullName email")
       .sort({ createdAt: -1 });
+  }
+
+  async getMyAdoptions(userId: string): Promise<IAnimalPost[]> {
+    return await AnimalPostModel.find({
+      adoptedBy: userId,
+    })
+      .populate("adoptedBy", "fullName email")
+      .sort({ updatedAt: -1 });
   }
 
   async getPostsBySpecies(species: string): Promise<IAnimalPost[]> {

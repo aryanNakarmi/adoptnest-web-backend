@@ -54,6 +54,19 @@ export class AnimalPostService {
     }
   }
 
+  async getMyAdoptions(userId: string): Promise<IAnimalPost[]> {
+    try {
+      if (!userId) {
+        throw new HttpError(400, "User ID is required");
+      }
+
+      const posts = await animalPostRepository.getMyAdoptions(userId);
+      return posts;
+    } catch (error: any) {
+      throw new HttpError(error.statusCode ?? 500, error.message || "Failed to fetch your adoptions");
+    }
+  }
+
   /**
    * Get posts by species
    */
@@ -139,12 +152,6 @@ export class AnimalPostService {
       if (!post) {
         throw new HttpError(404, "Animal post not found");
       }
-
-      const updateData: Partial<IAnimalPost> = {
-        status: data.status,
-        adoptedBy: data.status === "Adopted" ? data.adoptedBy : undefined,
-        adoptedDate: data.status === "Adopted" ? new Date() : undefined,
-      };
 
       const updatedPost = await animalPostRepository.updatePostStatus(
         id,
