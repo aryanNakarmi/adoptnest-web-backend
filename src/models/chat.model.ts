@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from "mongoose";
 
-// One chat per user
+// ===================== CHAT MODEL =====================
 export interface IChat extends Document {
   _id: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
@@ -16,7 +16,7 @@ const ChatSchema = new Schema<IChat>(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      unique: true, // one chat per user
+      unique: true,
     },
     lastMessage: { type: String, default: null },
     lastMessageAt: { type: Date, default: null },
@@ -26,7 +26,7 @@ const ChatSchema = new Schema<IChat>(
 
 export const ChatModel = mongoose.model<IChat>("Chat", ChatSchema);
 
-
+// ===================== MESSAGE MODEL =====================
 export interface IMessage extends Document {
   _id: mongoose.Types.ObjectId;
   chatId: mongoose.Types.ObjectId;
@@ -68,7 +68,6 @@ const MessageSchema = new Schema<IMessage>(
   { timestamps: true }
 );
 
-// Index for fast message lookup by chat
 MessageSchema.index({ chatId: 1, createdAt: 1 });
 
 export const MessageModel = mongoose.model<IMessage>("Message", MessageSchema);

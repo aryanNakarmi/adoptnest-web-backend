@@ -7,6 +7,7 @@ import authRoutes from './routes/auth.route';
 import animalReportRoutes from './routes/animalreport.route';
 import animalPostRoutes from './routes/animalpost.route';
 import adminRoutes from './routes/admin.route';
+import chatRoutes from './routes/chat.route';
 import cors from 'cors';
 import path from 'path';
 
@@ -44,6 +45,8 @@ app.use("/api/v1/auth",authRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/reports', animalReportRoutes);
 app.use('/api/v1/animal-posts', animalPostRoutes);
+app.use('/api/v1/chats', chatRoutes); 
+
 
 
 app.get('/', (req:Request, res:Response) =>{
