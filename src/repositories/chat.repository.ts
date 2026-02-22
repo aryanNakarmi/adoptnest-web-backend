@@ -42,11 +42,25 @@ export class ChatRepository implements IChatRepository {
       .populate("userId", "fullName email profilePicture") as any;
   }
 
-  async getAllChats(): Promise<IChat[]> {
-    return ChatModel.find()
-      .populate("userId", "fullName email profilePicture")
-      .sort({ lastMessageAt: -1, createdAt: -1 }) as any;
-  }
+ async getAllChats(): Promise<any[]> {
+  const chats = await ChatModel.find()
+    .populate("userId", "fullName email profilePicture")
+    .sort({ lastMessageAt: -1, createdAt: -1 });
+
+  // For each chat, count unread messages from users
+  const chatsWithUnread = await Promise.all(
+    chats.map(async (chat) => {
+      const unreadCount = await MessageModel.countDocuments({
+        chatId: chat._id,
+        senderRole: "user",
+        isRead: false,
+      });
+      return { ...chat.toObject(), unreadCount };
+    })
+  );
+
+  return chatsWithUnread;
+}
 
   async updateLastMessage(chatId: string, content: string): Promise<void> {
     await ChatModel.findByIdAndUpdate(chatId, {

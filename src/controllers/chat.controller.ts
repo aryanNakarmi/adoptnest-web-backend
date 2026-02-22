@@ -23,12 +23,16 @@ export class ChatController {
       const userId = req.user._id.toString();
       const chat = await chatService.getOrCreateChat(userId);
       const messages = await chatService.getMessages(chat._id.toString());
+
+      // Get unread count BEFORE marking as read so sidebar can use it
+      const unreadCount = await chatService.getUnreadCount(chat._id.toString(), "user");
+
       await chatService.markAsRead(chat._id.toString(), "user");
 
       return res.status(200).json({
         success: true,
         message: "Chat retrieved successfully",
-        data: { chat, messages },
+        data: { chat, messages, unreadCount },
       });
     } catch (error: any) {
       return res.status(error.statusCode ?? 500).json({
@@ -46,7 +50,6 @@ export class ChatController {
 
       let chatId = req.params.chatId;
 
-      // If user (not admin), resolve their chatId from their userId
       if (senderRole === "user") {
         const chat = await chatService.getOrCreateChat(userId);
         chatId = chat._id.toString();
@@ -71,7 +74,6 @@ export class ChatController {
         content: parsed.data.content,
       });
 
-      // Emit real-time event to the chat room
       const io = getIO();
       io.to(chatId).emit("new_message", message);
 
@@ -118,7 +120,6 @@ export class ChatController {
       const messages = await chatService.getMessages(chatId);
       await chatService.markAsRead(chatId, "admin");
 
-      // Notify user via socket that admin read their messages
       const io = getIO();
       io.to(chatId).emit("messages_read", { chatId, readerRole: "admin" });
 
@@ -143,7 +144,6 @@ export class ChatController {
         return res.status(400).json({ success: false, message: "User ID is required" });
       }
 
-      // getOrCreateChat handles both creating new and returning existing
       const chat = await chatService.getOrCreateChat(userId);
 
       return res.status(200).json({
