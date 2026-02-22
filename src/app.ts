@@ -45,7 +45,7 @@ app.use("/api/v1/auth",authRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/reports', animalReportRoutes);
 app.use('/api/v1/animal-posts', animalPostRoutes);
-app.use('/api/v1/chats', chatRoutes); 
+app.use('/api/v1/chats', chatRoutes);
 
 
 

@@ -19,26 +19,33 @@ export interface IChatRepository {
 
 export class ChatRepository implements IChatRepository {
   async getOrCreateChat(userId: string): Promise<IChat> {
-    let chat = await ChatModel.findOne({ userId }).populate("userId", "fullName email profilePicture");
-    if (!chat) {
-      chat = await ChatModel.create({ userId });
-      chat = await ChatModel.findById(chat._id).populate("userId", "fullName email profilePicture") as IChat;
-    }
-    return chat!;
+    const existing = await ChatModel.findOne({ userId })
+      .populate("userId", "fullName email profilePicture");
+
+    if (existing) return existing as any;
+
+    await ChatModel.create({ userId });
+
+    const chat = await ChatModel.findOne({ userId })
+      .populate("userId", "fullName email profilePicture");
+
+    return chat as any;
   }
 
   async getChatByUserId(userId: string): Promise<IChat | null> {
-    return ChatModel.findOne({ userId }).populate("userId", "fullName email profilePicture");
+    return ChatModel.findOne({ userId })
+      .populate("userId", "fullName email profilePicture") as any;
   }
 
   async getChatById(chatId: string): Promise<IChat | null> {
-    return ChatModel.findById(chatId).populate("userId", "fullName email profilePicture");
+    return ChatModel.findById(chatId)
+      .populate("userId", "fullName email profilePicture") as any;
   }
 
   async getAllChats(): Promise<IChat[]> {
     return ChatModel.find()
       .populate("userId", "fullName email profilePicture")
-      .sort({ lastMessageAt: -1, createdAt: -1 });
+      .sort({ lastMessageAt: -1, createdAt: -1 }) as any;
   }
 
   async updateLastMessage(chatId: string, content: string): Promise<void> {
@@ -51,7 +58,7 @@ export class ChatRepository implements IChatRepository {
   async getMessages(chatId: string): Promise<IMessage[]> {
     return MessageModel.find({ chatId })
       .populate("senderId", "fullName email role profilePicture")
-      .sort({ createdAt: 1 });
+      .sort({ createdAt: 1 }) as any;
   }
 
   async createMessage(data: {
@@ -61,7 +68,7 @@ export class ChatRepository implements IChatRepository {
     content: string;
   }): Promise<IMessage> {
     const message = await MessageModel.create(data);
-    return message.populate("senderId", "fullName email role profilePicture");
+    return message.populate("senderId", "fullName email role profilePicture") as any;
   }
 
   async markMessagesAsRead(chatId: string, readerRole: "user" | "admin"): Promise<void> {
