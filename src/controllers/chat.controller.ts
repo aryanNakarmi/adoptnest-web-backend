@@ -1,22 +1,28 @@
 import { Request, Response } from "express";
 import { chatService } from "../services/chat.service";
-import { SendMessageDTO } from "../dtos/chat.dto";
-import z from "zod";
 import { getIO } from "../socket/socket";
+import z from "zod";
 
 interface AuthRequest extends Request {
   user?: any;
 }
 
+const SendMessageDTO = z.object({
+  content: z
+    .string()
+    .min(1, "Message cannot be empty")
+    .max(2000, "Message cannot exceed 2000 characters")
+    .trim(),
+});
+
 export class ChatController {
+
   // ===================== USER: Get or create their chat =====================
   async getMyChat(req: AuthRequest, res: Response) {
     try {
       const userId = req.user._id.toString();
       const chat = await chatService.getOrCreateChat(userId);
       const messages = await chatService.getMessages(chat._id.toString());
-
-      // Mark admin messages as read when user opens chat
       await chatService.markAsRead(chat._id.toString(), "user");
 
       return res.status(200).json({
@@ -32,19 +38,22 @@ export class ChatController {
     }
   }
 
-  // ===================== USER: Send a message =====================
+  // ===================== USER or ADMIN: Send a message =====================
   async sendMessage(req: AuthRequest, res: Response) {
     try {
       const userId = req.user._id.toString();
       const senderRole = req.user.role === "admin" ? "admin" : "user";
 
-      // Get chatId — user sends to their own chat, admin sends to any chat
       let chatId = req.params.chatId;
 
-      // If user (not admin), get or create their chat
+      // If user (not admin), resolve their chatId from their userId
       if (senderRole === "user") {
         const chat = await chatService.getOrCreateChat(userId);
         chatId = chat._id.toString();
+      }
+
+      if (!chatId) {
+        return res.status(400).json({ success: false, message: "Chat ID is required" });
       }
 
       const parsed = SendMessageDTO.safeParse(req.body);
@@ -62,7 +71,7 @@ export class ChatController {
         content: parsed.data.content,
       });
 
-      // Emit to socket room so other party gets it in real-time
+      // Emit real-time event to the chat room
       const io = getIO();
       io.to(chatId).emit("new_message", message);
 
@@ -107,11 +116,9 @@ export class ChatController {
       }
 
       const messages = await chatService.getMessages(chatId);
-
-      // Mark user messages as read when admin opens chat
       await chatService.markAsRead(chatId, "admin");
 
-      // Notify user via socket that their messages were read
+      // Notify user via socket that admin read their messages
       const io = getIO();
       io.to(chatId).emit("messages_read", { chatId, readerRole: "admin" });
 
@@ -124,6 +131,30 @@ export class ChatController {
       return res.status(error.statusCode ?? 500).json({
         success: false,
         message: error.message || "Failed to get messages",
+      });
+    }
+  }
+
+  // ===================== ADMIN: Start a conversation with any user =====================
+  async startChatWithUser(req: AuthRequest, res: Response) {
+    try {
+      const { userId } = req.params;
+      if (!userId) {
+        return res.status(400).json({ success: false, message: "User ID is required" });
+      }
+
+      // getOrCreateChat handles both creating new and returning existing
+      const chat = await chatService.getOrCreateChat(userId);
+
+      return res.status(200).json({
+        success: true,
+        message: "Chat started successfully",
+        data: chat,
+      });
+    } catch (error: any) {
+      return res.status(error.statusCode ?? 500).json({
+        success: false,
+        message: error.message || "Failed to start chat",
       });
     }
   }
