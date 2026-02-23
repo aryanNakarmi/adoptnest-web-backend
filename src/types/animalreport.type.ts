@@ -7,11 +7,11 @@ export const AnimalReportSchema = z.object({
         .min(2, "Species must be at least 2 characters")
         .trim(),
 
-    location: z
-        .string()
-        .min(1, "Location is required")
-        .min(3, "Location must be at least 3 characters")
-        .trim(),
+    location: z.object({
+        address: z.string().min(3, "Location address is required").trim(),
+        lat: z.number(),
+        lng: z.number(),
+    }),
 
     description: z
         .string()
@@ -24,7 +24,6 @@ export const AnimalReportSchema = z.object({
         .string()
         .min(1, "Image URL is required"),
 
-    // These are optional at creation but stored in DB
     reportedBy: z.string().optional(),
     status: z.enum(["pending", "approved", "rejected"]).optional(),
 });
