@@ -31,7 +31,7 @@ export class AnimalPostService {
         status: "Available",
       };
 
-      const newPost = await animalPostRepository.createPost(postData);
+      const newPost = await animalPostRepository.createPost(postData as any);
       return newPost;
     } catch (error: any) {
       throw new HttpError(error.statusCode ?? 500, error.message || "Failed to create animal post");
