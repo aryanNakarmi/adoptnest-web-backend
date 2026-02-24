@@ -1,71 +1,61 @@
-import mongoose, { Document, Schema } from "mongoose";
-import { AnimalPostType } from "../types/animalpost.type";
+import mongoose, { Schema, Document } from "mongoose";
 
-const AnimalPostSchema: Schema = new Schema<AnimalPostType>(
-    {
-        species: {
-        type: String,
-        required: true,
-        trim: true,
-        maxlength: 50,
-        },
-        gender: { 
-            type: String, 
-            enum: ["Male", "Female"], 
-            required: true 
-        },
-        breed: {
-            type: String,
-            required: true,
-            trim: true
-        },
-        age: { 
-            type: Number, 
-            required: true, 
-            min: 0 
-        },
-        location: { 
-            type: String, 
-            required: true, 
-            trim: true 
-        },
-        description: { 
-            type: String, 
-            trim: true, 
-            maxlength: 2000,
-            default: null 
-        },
-        photos: [{ 
-            type: String, 
-            required: true 
-        }],
-        status: { 
-            type: String, 
-            enum: ["Available", "Adopted"],
-            default: "Available" 
-        },
-        adoptedBy: { 
-            type: mongoose.Schema.Types.ObjectId, 
-            ref: "User", 
-            default: null 
-        },
-        adoptedDate: {
-            type: Date,
-            default: null
-        }
-    },
-    { timestamps: true }
-);
-
-// Indexes for faster queries
-AnimalPostSchema.index({ status: 1, createdAt: -1 });
-AnimalPostSchema.index({ species: 1 });
-AnimalPostSchema.index({ location: 1 });
-
-export interface IAnimalPost extends AnimalPostType, Document {
-    _id: mongoose.Types.ObjectId;
-    createdAt: Date;
-    updatedAt: Date;
+// ── Adoption Request sub-document ──
+export interface IAdoptionRequest {
+  userId: mongoose.Types.ObjectId;
+  fullName: string;
+  email: string;
+  requestedAt: Date;
 }
 
-export const AnimalPostModel = mongoose.model<IAnimalPost>("AnimalPost", AnimalPostSchema);
+export interface IAnimalPost extends Document {
+  species: string;
+  gender: string;
+  breed: string;
+  age: number;
+  location: string;
+  description: string;
+  photos: string[];
+  status: "Available" | "Adopted";
+  adoptedBy?: mongoose.Types.ObjectId;
+  adoptedDate?: Date;
+  adoptionRequests: IAdoptionRequest[]; // ← NEW
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const AdoptionRequestSchema = new Schema<IAdoptionRequest>(
+  {
+    userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    fullName: { type: String, required: true },
+    email: { type: String, required: true },
+    requestedAt: { type: Date, default: Date.now },
+  },
+  { _id: false },
+);
+
+const AnimalPostSchema = new Schema<IAnimalPost>(
+  {
+    species: { type: String, required: true },
+    gender: { type: String, required: true, enum: ["Male", "Female"] },
+    breed: { type: String, required: true },
+    age: { type: Number, required: true },
+    location: { type: String, required: true },
+    description: { type: String, required: true },
+    photos: { type: [String], required: true },
+    status: {
+      type: String,
+      enum: ["Available", "Adopted"],
+      default: "Available",
+    },
+    adoptedBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
+    adoptedDate: { type: Date, default: null },
+    adoptionRequests: { type: [AdoptionRequestSchema], default: [] }, // ← NEW
+  },
+  { timestamps: true },
+);
+
+export const AnimalPostModel = mongoose.model<IAnimalPost>(
+  "AnimalPost",
+  AnimalPostSchema,
+);

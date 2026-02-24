@@ -6,12 +6,8 @@ import { IAnimalPost } from "../models/animalpost.model";
 let animalPostRepository = new AnimalPostRepository();
 
 export class AnimalPostService {
-  /**
-   * Create new animal post
-   */
   async createPost(data: CreateAnimalPostDTO): Promise<IAnimalPost> {
     try {
-      // Validation
       if (!data.species || !data.gender || !data.breed || !data.age || !data.location || !data.description) {
         throw new HttpError(400, "All required fields must be provided");
       }
@@ -26,7 +22,7 @@ export class AnimalPostService {
 
       const postData: Partial<IAnimalPost> = {
         species: data.species,
-        gender: data.gender,
+        gender: data.gender as "Male" | "Female", // ← fix
         breed: data.breed,
         age: data.age,
         location: data.location,
@@ -42,13 +38,9 @@ export class AnimalPostService {
     }
   }
 
-  /**
-   * Get all animal posts
-   */
   async getAllPosts(): Promise<IAnimalPost[]> {
     try {
-      const posts = await animalPostRepository.getAllPosts();
-      return posts;
+      return await animalPostRepository.getAllPosts();
     } catch (error: any) {
       throw new HttpError(error.statusCode ?? 500, error.message || "Failed to fetch animal posts");
     }
@@ -56,71 +48,43 @@ export class AnimalPostService {
 
   async getMyAdoptions(userId: string): Promise<IAnimalPost[]> {
     try {
-      if (!userId) {
-        throw new HttpError(400, "User ID is required");
-      }
-
-      const posts = await animalPostRepository.getMyAdoptions(userId);
-      return posts;
+      if (!userId) throw new HttpError(400, "User ID is required");
+      return await animalPostRepository.getMyAdoptions(userId);
     } catch (error: any) {
       throw new HttpError(error.statusCode ?? 500, error.message || "Failed to fetch your adoptions");
     }
   }
 
-  /**
-   * Get posts by species
-   */
   async getPostsBySpecies(species: string): Promise<IAnimalPost[]> {
     try {
-      if (!species) {
-        throw new HttpError(400, "Species is required");
-      }
-
-      const posts = await animalPostRepository.getPostsBySpecies(species);
-      return posts;
+      if (!species) throw new HttpError(400, "Species is required");
+      return await animalPostRepository.getPostsBySpecies(species);
     } catch (error: any) {
       throw new HttpError(error.statusCode ?? 500, error.message || "Failed to fetch posts by species");
     }
   }
 
-  /**
-   * Get single post by ID
-   */
   async getPostById(id: string): Promise<IAnimalPost> {
     try {
-      if (!id) {
-        throw new HttpError(400, "Post ID is required");
-      }
-
+      if (!id) throw new HttpError(400, "Post ID is required");
       const post = await animalPostRepository.getPostById(id);
-      if (!post) {
-        throw new HttpError(404, "Animal post not found");
-      }
-
+      if (!post) throw new HttpError(404, "Animal post not found");
       return post;
     } catch (error: any) {
       throw new HttpError(error.statusCode ?? 500, error.message || "Failed to fetch animal post");
     }
   }
 
-  /**
-   * Update animal post
-   */
   async updatePost(id: string, data: UpdateAnimalPostDTO): Promise<IAnimalPost> {
     try {
-      if (!id) {
-        throw new HttpError(400, "Post ID is required");
-      }
+      if (!id) throw new HttpError(400, "Post ID is required");
 
       const post = await animalPostRepository.getPostById(id);
-      if (!post) {
-        throw new HttpError(404, "Animal post not found");
-      }
+      if (!post) throw new HttpError(404, "Animal post not found");
 
-      // Only update provided fields
       const updateData: Partial<IAnimalPost> = {
         species: data.species ?? post.species,
-        gender: data.gender ?? post.gender,
+        gender: (data.gender ?? post.gender) as "Male" | "Female", // ← fix
         breed: data.breed ?? post.breed,
         age: data.age ?? post.age,
         location: data.location ?? post.location,
@@ -128,57 +92,36 @@ export class AnimalPostService {
         photos: data.photos ?? post.photos,
       };
 
-      const updatedPost = await animalPostRepository.updatePost(id, updateData);
+      const updatedPost = await animalPostRepository.updatePost(id, updateData as any);
       return updatedPost!;
     } catch (error: any) {
       throw new HttpError(error.statusCode ?? 500, error.message || "Failed to update animal post");
     }
   }
 
-  /**
-   * Update post status (Available → Adopted or vice versa)
-   */
   async updatePostStatus(id: string, data: UpdateAnimalPostStatusDTO): Promise<IAnimalPost> {
     try {
-      if (!id) {
-        throw new HttpError(400, "Post ID is required");
-      }
+      if (!id) throw new HttpError(400, "Post ID is required");
 
       if (!data.status || !["Available", "Adopted"].includes(data.status)) {
         throw new HttpError(400, "Invalid status. Must be Available or Adopted");
       }
 
       const post = await animalPostRepository.getPostById(id);
-      if (!post) {
-        throw new HttpError(404, "Animal post not found");
-      }
+      if (!post) throw new HttpError(404, "Animal post not found");
 
-      const updatedPost = await animalPostRepository.updatePostStatus(
-        id,
-        data.status,
-        data.adoptedBy
-      );
-
+      const updatedPost = await animalPostRepository.updatePostStatus(id, data.status, data.adoptedBy);
       return updatedPost!;
     } catch (error: any) {
       throw new HttpError(error.statusCode ?? 500, error.message || "Failed to update post status");
     }
   }
 
-  /**
-   * Delete animal post
-   */
   async deletePost(id: string): Promise<void> {
     try {
-      if (!id) {
-        throw new HttpError(400, "Post ID is required");
-      }
-
+      if (!id) throw new HttpError(400, "Post ID is required");
       const post = await animalPostRepository.getPostById(id);
-      if (!post) {
-        throw new HttpError(404, "Animal post not found");
-      }
-
+      if (!post) throw new HttpError(404, "Animal post not found");
       await animalPostRepository.deletePost(id);
     } catch (error: any) {
       throw new HttpError(error.statusCode ?? 500, error.message || "Failed to delete animal post");
