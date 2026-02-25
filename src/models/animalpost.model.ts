@@ -5,6 +5,7 @@ export interface IAdoptionRequest {
   userId: mongoose.Types.ObjectId;
   fullName: string;
   email: string;
+  profilePicture?: string;
   requestedAt: Date;
 }
 
@@ -29,6 +30,7 @@ const AdoptionRequestSchema = new Schema<IAdoptionRequest>(
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     fullName: { type: String, required: true },
     email: { type: String, required: true },
+    profilePicture: { type: String, default: null },
     requestedAt: { type: Date, default: Date.now },
   },
   { _id: false },

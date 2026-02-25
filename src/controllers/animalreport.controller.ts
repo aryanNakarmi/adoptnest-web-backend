@@ -212,13 +212,13 @@ export class AnimalReportController {
           (report.location as any)?.address || "the reported location";
 
         const subject = isApproved
-          ? `✅ Your Animal Report Has Been Approved — AdoptNest`
-          : `❌ Your Animal Report Has Been Rejected — AdoptNest`;
+          ? `Your Animal Report Has Been Approved — AdoptNest`
+          : `Your Animal Report Has Been Rejected — AdoptNest`;
 
         const html = `
                     <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
                         <div style="background:${isApproved ? "linear-gradient(135deg,#22c55e,#16a34a)" : "linear-gradient(135deg,#ef4444,#dc2626)"};padding:30px;border-radius:12px 12px 0 0;text-align:center;">
-                            <h1 style="color:white;margin:0;font-size:26px;">${isApproved ? "✅ Report Approved!" : "❌ Report Rejected"}</h1>
+                            <h1 style="color:white;margin:0;font-size:26px;">${isApproved ? "Report Approved!" : "Report Rejected"}</h1>
                         </div>
                         <div style="background:#f9fafb;padding:30px;border:1px solid #e5e7eb;border-radius:0 0 12px 12px;">
                             <p style="font-size:16px;color:#374151;">Hi <strong>${user.fullName}</strong>,</p>
@@ -231,7 +231,7 @@ export class AnimalReportController {
                                 <p style="margin:0;color:${isApproved ? "#166534" : "#991b1b"};">
                                     ${
                                       isApproved
-                                        ? "Our team will take action to help this animal. Thank you for caring! 🐾"
+                                        ? "Our team will take action to help this animal. Thank you for caring! "
                                         : "This may be due to insufficient information. You're welcome to submit a new report with clearer details."
                                     }
                                 </p>
