@@ -6,7 +6,7 @@ import uploadImage from "../middleware/multer.middleware";
 let authController = new AuthController();
 const router = Router();
 
-router.post("/register", authController.register)
+router.post("/register", authController.register) 
 router.post("/login", authController.login)
 router.post("/request-password-reset", authController.requestPasswordReset)
 router.put(
