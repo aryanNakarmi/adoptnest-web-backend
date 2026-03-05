@@ -274,7 +274,7 @@ describe("AnimalReport Controller", () => {
     test("23. returns 404 for non-existent report", async () => {
       const res = await request(app).delete("/api/v1/reports/000000000000000000000001").set("Authorization", `Bearer ${userToken}`);
       expect(res.status).toBe(404);
-    });
+    }); 
   });
 
   // GET /api/v1/reports/species/:species
